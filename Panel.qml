@@ -25,7 +25,7 @@ Panel {
     readonly property color contentForeground: bar ? bar.foreground : Color.foreground
     readonly property string contentFontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property int weekStart: bsMode ? 0 : Model.normalizedWeekStart(setting("weekStartDay", null), Qt.locale().firstDayOfWeek)
-    readonly property var weekdays: bsMode ? [0,1,2,3,4,5,6] : Model.weekdayOrder(weekStart)
+    readonly property var weekdays: bsMode ? [0, 1, 2, 3, 4, 5, 6] : Model.weekdayOrder(weekStart)
     readonly property var adLocale: Qt.locale("en_US")
     readonly property var bsWeekdayNames: ["आइतबार", "सोमबार", "मंगलबार", "बुधबार", "बिहीबार", "शुक्रबार", "शनिबार"]
 
@@ -44,109 +44,125 @@ Panel {
     property bool opened: _opened
 
     function persistSettings(values) {
-        var entry = { id: root.moduleName }
-        for (var existing in root.settings) if (existing !== "id") entry[existing] = root.settings[existing]
-        for (var key in values) entry[key] = values[key]
-        root.settings = entry
-        if (root.hostWidget && "settings" in root.hostWidget) root.hostWidget.settings = entry
-        if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function") root.bar.shell.updateEntryInline(root.moduleName, entry)
+        var entry = {
+            id: root.moduleName
+        };
+        for (var existing in root.settings)
+            if (existing !== "id")
+                entry[existing] = root.settings[existing];
+        for (var key in values)
+            entry[key] = values[key];
+        root.settings = entry;
+        if (root.hostWidget && "settings" in root.hostWidget)
+            root.hostWidget.settings = entry;
+        if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
+            root.bar.shell.updateEntryInline(root.moduleName, entry);
     }
 
     function setMode(mode) {
-        var next = mode === "ad" ? "ad" : "bs"
-        if (next === root.activeMode) return
-        root.activeMode = next
-        root.persistSettings({ calendarMode: next })
-        root.goToToday()
-        gridColumn.opacity = 0.35
+        var next = mode === "ad" ? "ad" : "bs";
+        if (next === root.activeMode)
+            return;
+        root.activeMode = next;
+        root.persistSettings({
+            calendarMode: next
+        });
+        root.goToToday();
+        gridColumn.opacity = 0.35;
     }
 
     function goToToday() {
         if (root.bsMode && root.todayBs) {
-            root.viewYear = root.todayBs.year
-            root.viewMonth = root.todayBs.month
+            root.viewYear = root.todayBs.year;
+            root.viewMonth = root.todayBs.month;
         } else {
-            root.viewYear = root.today.getFullYear()
-            root.viewMonth = root.today.getMonth()
+            root.viewYear = root.today.getFullYear();
+            root.viewMonth = root.today.getMonth();
         }
     }
 
     function moveMonth(delta) {
         if (root.bsMode) {
-            var nextBs = Model.stepBsMonth(viewYear, viewMonth, delta)
+            var nextBs = Model.stepBsMonth(viewYear, viewMonth, delta);
             if (nextBs) {
-                viewYear = nextBs.year
-                viewMonth = nextBs.month
+                viewYear = nextBs.year;
+                viewMonth = nextBs.month;
             }
         } else {
-            var nextAd = Model.stepMonth(viewYear, viewMonth, delta)
-            viewYear = nextAd.year
-            viewMonth = nextAd.month
+            var nextAd = Model.stepMonth(viewYear, viewMonth, delta);
+            viewYear = nextAd.year;
+            viewMonth = nextAd.month;
         }
     }
 
     function weekdayLabel(day) {
-        return root.bsMode ? root.bsWeekdayNames[day] : String(root.adLocale.dayName(day, Locale.ShortFormat)).toUpperCase()
+        return root.bsMode ? root.bsWeekdayNames[day] : String(root.adLocale.dayName(day, Locale.ShortFormat)).toUpperCase();
     }
 
     function dayText(day) {
-        return root.nepaliDigits && root.bsMode ? Model.toDevanagari(day) : String(day)
+        return root.nepaliDigits && root.bsMode ? Model.toDevanagari(day) : String(day);
     }
 
     function todayText() {
         if (root.bsMode && root.todayBs) {
-            return root.dayText(root.todayBs.day) + " " + Model.NEPALI_MONTHS_NP[root.todayBs.month] + " " + (root.nepaliDigits ? Model.toDevanagari(root.todayBs.year) : root.todayBs.year)
+            return root.dayText(root.todayBs.day) + " " + Model.NEPALI_MONTHS_NP[root.todayBs.month] + " " + (root.nepaliDigits ? Model.toDevanagari(root.todayBs.year) : root.todayBs.year);
         }
-        return Qt.formatDate(root.today, "MMMM d, yyyy")
+        return Qt.formatDate(root.today, "MMMM d, yyyy");
     }
 
     function monthText() {
         if (root.bsMode) {
-            return Model.NEPALI_MONTHS_NP[viewMonth] + " " + (root.nepaliDigits ? Model.toDevanagari(viewYear) : viewYear)
+            return Model.NEPALI_MONTHS_NP[viewMonth] + " " + (root.nepaliDigits ? Model.toDevanagari(viewYear) : viewYear);
         }
-        return Qt.formatDate(new Date(viewYear, viewMonth, 1), "MMMM yyyy").toUpperCase()
+        return Qt.formatDate(new Date(viewYear, viewMonth, 1), "MMMM yyyy").toUpperCase();
     }
 
     function open() {
-        refresh()
-        _opened = true
-        popup.open = true
-        root.controller.show()
-        Qt.callLater(function() {
-            if (_opened) setCenterHoverRevealSuppressed(true)
-        })
+        refresh();
+        _opened = true;
+        popup.open = true;
+        root.controller.show();
+        Qt.callLater(function () {
+            if (_opened)
+                setCenterHoverRevealSuppressed(true);
+        });
     }
 
     // KeyboardPanel dismisses through its owner. Keep that path pointed at
     // the panel controller itself so an outside click cannot get lost in the
     // bar-widget wrapper.
     function dismissPopup() {
-        setCenterHoverRevealSuppressed(false)
-        root.controller.hide()
+        _opened = false;
+        popup.open = false;
+        setCenterHoverRevealSuppressed(false);
+        root.controller.hide();
     }
 
     function close() {
-        _opened = false
-        popup.open = false
-        root.dismissPopup()
+        _opened = false;
+        popup.open = false;
+        root.dismissPopup();
     }
 
     function toggle() {
-        if (opened) close()
-        else open()
+        if (opened)
+            close();
+        else
+            open();
     }
 
     function refresh() {
-        today = new Date()
-        goToToday()
+        today = new Date();
+        goToToday();
     }
 
     function switchPanel(direction) {
-        return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(barIdentity, direction) : false
+        return bar && typeof bar.switchPanelFrom === "function" ? bar.switchPanelFrom(barIdentity, direction) : false;
     }
 
     function setCenterHoverRevealSuppressed(value) {
-        if (bar && "centerHoverRevealSuppressed" in bar) bar.centerHoverRevealSuppressed = value
+        if (bar && "centerHoverRevealSuppressed" in bar)
+            bar.centerHoverRevealSuppressed = value;
     }
 
     Component.onCompleted: goToToday()
@@ -154,9 +170,10 @@ Panel {
     SystemClock {
         precision: SystemClock.Minutes
         onDateChanged: {
-            var followed = root.viewingCurrentMonth
-            root.today = date
-            if (followed) root.goToToday()
+            var followed = root.viewingCurrentMonth;
+            root.today = date;
+            if (followed)
+                root.goToToday();
         }
     }
 
@@ -174,19 +191,28 @@ Panel {
         PanelKeyCatcher {
             id: keyCatcher
             anchors.fill: parent
-            onMoveRequested: function(dx, dy) {
-                if (dx !== 0) root.moveMonth(dx)
-                if (dy !== 0) root.moveMonth(dy * 12)
+            onMoveRequested: function (dx, dy) {
+                if (dx !== 0)
+                    root.moveMonth(dx);
+                if (dy !== 0)
+                    root.moveMonth(dy * 12);
             }
             onActivateRequested: root.goToToday()
             onCloseRequested: root.dismissPopup()
-            onTabRequested: function(direction) { root.switchPanel(direction) }
-            onTextKey: function(t) {
-                if (t === "[") root.moveMonth(-1)
-                else if (t === "]") root.moveMonth(1)
-                else if (t === "t" || t === "T") root.goToToday()
-                else if (t === "b" || t === "B") root.setMode("bs")
-                else if (t === "a" || t === "A") root.setMode("ad")
+            onTabRequested: function (direction) {
+                root.switchPanel(direction);
+            }
+            onTextKey: function (t) {
+                if (t === "[")
+                    root.moveMonth(-1);
+                else if (t === "]")
+                    root.moveMonth(1);
+                else if (t === "t" || t === "T")
+                    root.goToToday();
+                else if (t === "b" || t === "B")
+                    root.setMode("bs");
+                else if (t === "a" || t === "A")
+                    root.setMode("ad");
             }
 
             Flickable {
@@ -271,9 +297,7 @@ Panel {
                                     Text {
                                         anchors.centerIn: parent
                                         text: parent.modelData
-                                        color: (parent.modelData === "BS") === root.bsMode
-                                               ? Style.contrastingTextColor(Style.selectedStateColor(root.contentForeground, Color.accent))
-                                               : Qt.darker(root.contentForeground, 1.6)
+                                        color: (parent.modelData === "BS") === root.bsMode ? Style.contrastingTextColor(Style.selectedStateColor(root.contentForeground, Color.accent)) : Qt.darker(root.contentForeground, 1.6)
                                         font.family: root.contentFontFamily
                                         font.pixelSize: Style.font.caption
                                         font.bold: true
@@ -295,9 +319,9 @@ Panel {
                         height: gridColumn.height
 
                         WheelHandler {
-                            onWheel: function(event) {
+                            onWheel: function (event) {
                                 if (event.angleDelta.y !== 0) {
-                                    root.moveMonth(event.angleDelta.y > 0 ? -1 : 1)
+                                    root.moveMonth(event.angleDelta.y > 0 ? -1 : 1);
                                 }
                             }
                         }
@@ -313,7 +337,10 @@ Panel {
                                     easing.type: Easing.OutCubic
                                 }
                             }
-                            onOpacityChanged: if (opacity < 1) Qt.callLater(function() { opacity = 1 })
+                            onOpacityChanged: if (opacity < 1)
+                                Qt.callLater(function () {
+                                    opacity = 1;
+                                })
 
                             Row {
                                 spacing: root.cellSpacing
@@ -392,9 +419,7 @@ Panel {
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: root.dayText(modelData.day)
-                                                color: modelData.inMonth
-                                                       ? (modelData.weekend ? Qt.darker(root.contentForeground, 1.45) : root.contentForeground)
-                                                       : Qt.darker(root.contentForeground, 2.2)
+                                                color: modelData.inMonth ? (modelData.weekend ? Qt.darker(root.contentForeground, 1.45) : root.contentForeground) : Qt.darker(root.contentForeground, 2.2)
                                                 font.family: root.contentFontFamily
                                                 font.pixelSize: Style.font.body
                                                 font.bold: modelData.today
